@@ -6,12 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+import { CatsService } from './cats.service';
 
 // 2. nest g controller cats
 
 @Controller('cats') // -> /cats
 export class CatsController {
+  constructor(private readonly catService: CatsService) {}
+
   /*
        GET      /cats
        GEt      /cats/:id
@@ -22,8 +26,11 @@ export class CatsController {
 
   // -> decorator
   @Get() // GET /cats
-  findAll(@Param('color') color?: string) {
-    return [];
+  findAll(@Query('color') color?: string) {
+    return {
+      status: 'ok',
+      data: this.catService.findAll(color),
+    };
   }
 
   /* 
@@ -31,23 +38,37 @@ export class CatsController {
   */
   @Get(':id') // GET /cats/:id
   findOne(@Param('id') id: string) {
-    return { id };
+    return {
+      status: 'ok',
+      data: this.catService.findOne(id),
+    };
   }
 
   /* 
     Fungsi create untuk membuat atau menambah data, menerima data dari request body.
   */
   @Post() // POST /cats
-  create(@Body() cats: {}) {
-    return cats;
+  create(@Body() cat: { name: string; color: string }) {
+    const data = this.catService.create(cat);
+    return {
+      status: 'ok',
+      data: data,
+    };
   }
 
   /* 
     Fungsi update untuk mengubah membutuhkan parameter id dan body
   */
   @Patch(':id') // PATCH /cats/:id
-  update(@Param('id') id: string, @Body() catsUpdate: {}) {
-    return { id, ...catsUpdate };
+  update(
+    @Param('id') id: string,
+    @Body() catUpdate: { name?: string; color?: string },
+  ) {
+    const newCat = this.catService.update(id, catUpdate);
+    return {
+      status: 'ok',
+      data: newCat,
+    };
   }
 
   @Delete(':id') // DELETE /cats/:id
